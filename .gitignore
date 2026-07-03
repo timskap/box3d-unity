@@ -1,4 +1,5 @@
 build/
+build-unity*/
 imgui.ini
 settings.ini
 .vscode/
