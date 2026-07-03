@@ -10,5 +10,8 @@ Initial release.
   hinge/ball/distance/prismatic/fixed/wheel/motor/parallel joints.
 - Collision, trigger, and hit events via C# events and handler interfaces.
 - Scene queries: raycast, raycast-all, sphere cast, overlap sphere/AABB, explosion.
-- Prebuilt macOS universal binary; build scripts for Windows and Linux.
+- Prebuilt native binaries for macOS (universal), Windows (x86_64), and
+  Linux (x86_64, glibc 2.31+), with platform-restricted plugin import settings.
+- Native build scripts per platform plus a macOS cross-build script
+  (MinGW for Windows, Docker for Linux).
 - Demo sample.

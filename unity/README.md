@@ -12,10 +12,12 @@ and scene queries.
    package and generates `.meta` files on first import.
    - Alternatively: `Window > Package Manager > + > Add package from disk...` and select
      this folder's `package.json`.
-2. The package ships with a prebuilt macOS universal binary
-   (`Runtime/Plugins/macOS/libbox3d.dylib`, arm64 + x86_64). For Windows/Linux run the
-   scripts in `Native~/` (requires CMake), which build from the repository root and copy
-   the binary into `Runtime/Plugins/<Platform>/`.
+2. Prebuilt native binaries are included for all desktop platforms:
+   - macOS: `Runtime/Plugins/macOS/libbox3d.dylib` (universal, arm64 + x86_64)
+   - Windows: `Runtime/Plugins/Windows/box3d.dll` (x86_64, self-contained)
+   - Linux: `Runtime/Plugins/Linux/libbox3d.so` (x86_64, glibc 2.31+, Ubuntu 20.04 or newer)
+
+   To rebuild them, use the scripts in `Native~/` (see below).
 3. Requires Unity 2021.3 or newer.
 
 ## Quick start
@@ -108,14 +110,22 @@ opt-in per collider.
 
 ## Rebuilding the native library
 
+On the target OS itself:
+
 ```
 Native~/build_macos.sh      # universal dylib -> Runtime/Plugins/macOS
-Native~/build_windows.bat   # box3d.dll       -> Runtime/Plugins/Windows
+Native~/build_windows.bat   # box3d.dll       -> Runtime/Plugins/Windows (MSVC)
 Native~/build_linux.sh      # libbox3d.so     -> Runtime/Plugins/Linux
 ```
 
-After adding a new platform binary, select it in Unity and set its platform in the
-plugin importer (Editor + Standalone for the matching OS/CPU).
+Or cross-compile everything from macOS (mingw-w64 for Windows, Docker for Linux):
+
+```
+Native~/crossbuild_from_macos.sh all      # or: windows | linux
+```
+
+The shipped `.meta` files already restrict each binary to its own platform
+(Editor + Standalone), so builds only include the matching library.
 
 ## Sample
 
