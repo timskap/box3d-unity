@@ -7,6 +7,7 @@ namespace Box3D
 {
     /// <summary>Capsule collision shape (a segment with radius).</summary>
     [AddComponentMenu("Box3D/Box3D Capsule Collider")]
+    [HelpURL("https://github.com/timskap/box3d-unity/blob/main/unity/README.md#box3dcapsulecollider")]
     public sealed class Box3DCapsuleCollider : Box3DCollider
     {
         public enum Axis
@@ -28,8 +29,63 @@ namespace Box3D
         [Tooltip("Local axis the capsule extends along.")]
         public Axis direction = Axis.Y;
 
+        Vector3 _builtCenter;
+        float _builtRadius;
+        float _builtHeight;
+        Axis _builtDirection;
+
+        protected override bool GeometryOutOfDate =>
+            base.GeometryOutOfDate || center != _builtCenter || radius != _builtRadius ||
+            height != _builtHeight || direction != _builtDirection;
+
+        void Reset()
+        {
+            FitToRenderBounds();
+        }
+
+        /// <summary>Size the capsule from the render mesh on this GameObject, like Unity's CapsuleCollider.</summary>
+        [ContextMenu("Fit to Render Bounds")]
+        public void FitToRenderBounds()
+        {
+            if (!TryGetLocalRenderBounds(out Bounds bounds))
+            {
+                return;
+            }
+
+            center = bounds.center;
+            Vector3 size = bounds.size;
+
+            // The capsule extends along the longest side of the bounds.
+            direction = size.y >= size.x && size.y >= size.z ? Axis.Y
+                : size.x >= size.z ? Axis.X
+                : Axis.Z;
+
+            height = Mathf.Max(direction switch
+            {
+                Axis.X => size.x,
+                Axis.Z => size.z,
+                _ => size.y,
+            }, 0.002f);
+
+            radius = Mathf.Max(0.5f * (direction switch
+            {
+                Axis.X => Mathf.Max(size.y, size.z),
+                Axis.Z => Mathf.Max(size.x, size.y),
+                _ => Mathf.Max(size.x, size.z),
+            }), 0.001f);
+
+            if (Application.isPlaying && IsCreated)
+            {
+                Rebuild();
+            }
+        }
+
         protected override B3ShapeId CreateNativeShape(B3BodyId bodyId, ref B3ShapeDef def)
         {
+            _builtCenter = center;
+            _builtRadius = radius;
+            _builtHeight = height;
+            _builtDirection = direction;
             GetBodyLocalPose(out Vector3 localPosition, out Quaternion localRotation, out Vector3 scale);
             ComputeEndpoints(scale, out Vector3 p1, out Vector3 p2, out float worldRadius);
 

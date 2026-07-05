@@ -10,6 +10,7 @@ namespace Box3D
     /// optionally limited by a cone and twist range. Good for ragdolls and chains.
     /// </summary>
     [AddComponentMenu("Box3D/Joints/Box3D Ball Joint")]
+    [HelpURL("https://github.com/timskap/box3d-unity/blob/main/unity/README.md#box3dballjoint")]
     public sealed class Box3DBallJoint : Box3DJoint
     {
         [Tooltip("Cone/twist axis in this GameObject's local space.")]
@@ -101,6 +102,47 @@ namespace Box3D
             if (Application.isPlaying)
             {
                 ApplyProperties();
+            }
+        }
+
+        protected override void DrawJointGizmos(Vector3 worldAnchor)
+        {
+            var color = new Color(0.3f, 0.8f, 1.0f, 0.9f);
+            DrawAxisGizmo(worldAnchor, axis, color, 0.35f);
+
+            if (!useConeLimit)
+            {
+                return;
+            }
+
+            Vector3 dir = transform.TransformDirection(axis);
+            if (dir.sqrMagnitude < 1e-10f)
+            {
+                return;
+            }
+
+            // Cone outline: a circle at the cone opening plus edge lines from the anchor.
+            dir.Normalize();
+            const float length = 0.35f;
+            float angle = Mathf.Clamp(coneAngle, 0.0f, 179.0f);
+            float circleRadius = length * Mathf.Sin(angle * Mathf.Deg2Rad);
+            Vector3 circleCenter = worldAnchor + dir * (length * Mathf.Cos(angle * Mathf.Deg2Rad));
+            Vector3 reference = Vector3.Cross(dir, Mathf.Abs(dir.y) < 0.99f ? Vector3.up : Vector3.right).normalized;
+
+            Gizmos.color = new Color(color.r, color.g, color.b, 0.5f);
+            const int segments = 24;
+            Vector3 previous = circleCenter + reference * circleRadius;
+            for (int i = 1; i <= segments; ++i)
+            {
+                Vector3 current = circleCenter +
+                    Quaternion.AngleAxis(360.0f * i / segments, dir) * reference * circleRadius;
+                Gizmos.DrawLine(previous, current);
+                if ((i & 3) == 0)
+                {
+                    Gizmos.DrawLine(worldAnchor, current);
+                }
+
+                previous = current;
             }
         }
     }

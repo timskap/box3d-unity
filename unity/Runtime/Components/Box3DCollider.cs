@@ -80,6 +80,7 @@ namespace Box3D
         Box3DBody _body;
         Box3DWorld _world;
         B3BodyId _ownedStaticBody; // used when there is no Box3DBody in the parents
+        bool _builtIsTrigger;
 
         IBox3DCollisionHandler[] _collisionHandlers = Array.Empty<IBox3DCollisionHandler>();
         IBox3DTriggerHandler[] _triggerHandlers = Array.Empty<IBox3DTriggerHandler>();
@@ -100,6 +101,7 @@ namespace Box3D
         }
 
         /// <summary>Destroy and recreate the native shape. Call after changing geometry fields or transform scale.</summary>
+        [ContextMenu("Rebuild Shape")]
         public void Rebuild()
         {
             if (!isActiveAndEnabled)
@@ -171,6 +173,7 @@ namespace Box3D
                 return;
             }
 
+            _builtIsTrigger = isTrigger;
             _world.RegisterCollider(_shapeId, this);
             _body?.AttachCollider(this);
             RefreshHandlers();
@@ -280,6 +283,30 @@ namespace Box3D
             return Mathf.Max(Mathf.Abs(a), Mathf.Abs(b));
         }
 
+        /// <summary>
+        /// Local-space render bounds of this GameObject (MeshFilter or SkinnedMeshRenderer),
+        /// used to auto-fit primitive colliders.
+        /// </summary>
+        protected bool TryGetLocalRenderBounds(out Bounds bounds)
+        {
+            var meshFilter = GetComponent<MeshFilter>();
+            if (meshFilter != null && meshFilter.sharedMesh != null)
+            {
+                bounds = meshFilter.sharedMesh.bounds;
+                return true;
+            }
+
+            var skinned = GetComponent<SkinnedMeshRenderer>();
+            if (skinned != null)
+            {
+                bounds = skinned.localBounds;
+                return true;
+            }
+
+            bounds = default;
+            return false;
+        }
+
         // ------------------------------------------------------------------
         // Runtime property updates
         // ------------------------------------------------------------------
@@ -312,9 +339,24 @@ namespace Box3D
             B3Api.b3Shape_EnableHitEvents(_shapeId, hitEvents && !isTrigger);
         }
 
+        /// <summary>
+        /// True when serialized geometry fields no longer match the built native shape.
+        /// Subclasses extend this so inspector edits rebuild the shape live in play mode.
+        /// </summary>
+        protected virtual bool GeometryOutOfDate => isTrigger != _builtIsTrigger;
+
         protected virtual void OnValidate()
         {
-            if (Application.isPlaying && IsCreated)
+            if (!Application.isPlaying || !IsCreated)
+            {
+                return;
+            }
+
+            if (GeometryOutOfDate)
+            {
+                Rebuild();
+            }
+            else
             {
                 ApplyProperties();
             }

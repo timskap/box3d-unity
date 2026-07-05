@@ -10,6 +10,7 @@ namespace Box3D
     /// connected body. Rigid by default; enable the spring for rope/bungee behavior.
     /// </summary>
     [AddComponentMenu("Box3D/Joints/Box3D Distance Joint")]
+    [HelpURL("https://github.com/timskap/box3d-unity/blob/main/unity/README.md#box3ddistancejoint")]
     public sealed class Box3DDistanceJoint : Box3DJoint
     {
         [Tooltip("Anchor on the connected body, in its local space (world space when connected to the world).")]
@@ -90,6 +91,14 @@ namespace Box3D
             {
                 ApplyProperties();
             }
+        }
+
+        protected override void DrawJointGizmos(Vector3 worldAnchor)
+        {
+            Vector3 other = ConnectedWorldAnchor;
+            Gizmos.color = new Color(0.3f, 0.8f, 1.0f, 0.9f);
+            Gizmos.DrawWireSphere(other, 0.05f);
+            Gizmos.DrawLine(worldAnchor, other);
         }
     }
 }

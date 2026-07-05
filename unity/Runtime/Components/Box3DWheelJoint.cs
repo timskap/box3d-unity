@@ -11,6 +11,7 @@ namespace Box3D
     /// suspension axis, and can optionally steer around the suspension axis.
     /// </summary>
     [AddComponentMenu("Box3D/Joints/Box3D Wheel Joint")]
+    [HelpURL("https://github.com/timskap/box3d-unity/blob/main/unity/README.md#box3dwheeljoint")]
     public sealed class Box3DWheelJoint : Box3DJoint
     {
         [Tooltip("Wheel spin axis in this GameObject's local space (usually the lateral axis).")]
@@ -153,6 +154,33 @@ namespace Box3D
             if (Application.isPlaying)
             {
                 ApplyProperties();
+            }
+        }
+
+        protected override void DrawJointGizmos(Vector3 worldAnchor)
+        {
+            // Spin axis in cyan, suspension travel in green.
+            DrawAxisGizmo(worldAnchor, spinAxis, new Color(0.3f, 0.8f, 1.0f, 0.9f), 0.4f);
+
+            Vector3 dir = transform.TransformDirection(suspensionAxis);
+            if (dir.sqrMagnitude < 1e-10f)
+            {
+                return;
+            }
+
+            dir.Normalize();
+            Gizmos.color = new Color(0.4f, 1.0f, 0.4f, 0.9f);
+            if (useSuspensionLimits)
+            {
+                Vector3 a = worldAnchor + dir * Mathf.Min(minSuspension, maxSuspension);
+                Vector3 b = worldAnchor + dir * Mathf.Max(minSuspension, maxSuspension);
+                Gizmos.DrawLine(a, b);
+                Gizmos.DrawWireCube(a, Vector3.one * 0.04f);
+                Gizmos.DrawWireCube(b, Vector3.one * 0.04f);
+            }
+            else
+            {
+                Gizmos.DrawLine(worldAnchor - dir * 0.4f, worldAnchor + dir * 0.4f);
             }
         }
     }

@@ -8,6 +8,7 @@ namespace Box3D
 {
     /// <summary>Box collision shape (implemented as an 8-vertex convex hull).</summary>
     [AddComponentMenu("Box3D/Box3D Box Collider")]
+    [HelpURL("https://github.com/timskap/box3d-unity/blob/main/unity/README.md#box3dboxcollider")]
     public sealed class Box3DBoxCollider : Box3DCollider
     {
         [Tooltip("Local center of the box.")]
@@ -15,6 +16,35 @@ namespace Box3D
 
         [Tooltip("Full extents before transform scale.")]
         public Vector3 size = Vector3.one;
+
+        Vector3 _builtCenter;
+        Vector3 _builtSize;
+
+        protected override bool GeometryOutOfDate =>
+            base.GeometryOutOfDate || center != _builtCenter || size != _builtSize;
+
+        void Reset()
+        {
+            FitToRenderBounds();
+        }
+
+        /// <summary>Size the box from the render mesh on this GameObject, like Unity's BoxCollider.</summary>
+        [ContextMenu("Fit to Render Bounds")]
+        public void FitToRenderBounds()
+        {
+            if (!TryGetLocalRenderBounds(out Bounds bounds))
+            {
+                return;
+            }
+
+            center = bounds.center;
+            size = Vector3.Max(bounds.size, new Vector3(0.001f, 0.001f, 0.001f));
+
+            if (Application.isPlaying && IsCreated)
+            {
+                Rebuild();
+            }
+        }
 
         static readonly Vector3[] CornerSigns =
         {
@@ -24,6 +54,8 @@ namespace Box3D
 
         protected override B3ShapeId CreateNativeShape(B3BodyId bodyId, ref B3ShapeDef def)
         {
+            _builtCenter = center;
+            _builtSize = size;
             GetBodyLocalPose(out Vector3 localPosition, out Quaternion localRotation, out Vector3 scale);
 
             var points = new Vector3[8];

@@ -11,6 +11,7 @@ namespace Box3D
     /// vehicles upright while still letting them tilt and recover.
     /// </summary>
     [AddComponentMenu("Box3D/Joints/Box3D Parallel Joint")]
+    [HelpURL("https://github.com/timskap/box3d-unity/blob/main/unity/README.md#box3dparalleljoint")]
     public sealed class Box3DParallelJoint : Box3DJoint
     {
         [Tooltip("Axis of this body to keep aligned, in local space.")]
@@ -29,6 +30,11 @@ namespace Box3D
         {
             // The joint aligns the z axes of the two frames.
             return BasisWithZ(transform.TransformDirection(axis));
+        }
+
+        protected override void DrawJointGizmos(Vector3 worldAnchor)
+        {
+            DrawAxisGizmo(worldAnchor, axis, new Color(0.3f, 0.8f, 1.0f, 0.9f));
         }
 
         protected override B3JointId CreateNativeJoint(B3WorldId worldId)
