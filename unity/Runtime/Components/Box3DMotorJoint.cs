@@ -11,6 +11,7 @@ namespace Box3D
     /// grabbed objects, and top-down character friction.
     /// </summary>
     [AddComponentMenu("Box3D/Joints/Box3D Motor Joint")]
+    [HelpURL("https://github.com/timskap/box3d-unity/blob/main/unity/README.md#box3dmotorjoint")]
     public sealed class Box3DMotorJoint : Box3DJoint
     {
         [Header("Velocity Control")]

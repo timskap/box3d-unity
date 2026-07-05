@@ -1,9 +1,11 @@
 {
   "name": "com.box3d.unity",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "displayName": "Box3D for Unity",
   "description": "Unity integration for the Box3D physics engine by Erin Catto. Provides a component workflow (world, rigid bodies, colliders, joints), contact/trigger events, and scene queries backed by the native Box3D library.",
   "unity": "2021.3",
+  "documentationUrl": "https://github.com/timskap/box3d-unity/blob/main/unity/README.md",
+  "changelogUrl": "https://github.com/timskap/box3d-unity/blob/main/unity/CHANGELOG.md",
   "keywords": [
     "physics",
     "box3d",
@@ -14,12 +16,5 @@
     "name": "Box3D contributors",
     "url": "https://box2d.org"
   },
-  "license": "MIT",
-  "samples": [
-    {
-      "displayName": "Demo",
-      "description": "Procedural demo scene: ground, stacks, joints, character shapes.",
-      "path": "Samples~/Demo"
-    }
-  ]
+  "license": "MIT"
 }

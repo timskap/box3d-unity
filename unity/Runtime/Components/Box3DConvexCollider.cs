@@ -11,6 +11,7 @@ namespace Box3D
     /// The hull is computed from the mesh vertices and simplified to at most Max Vertices.
     /// </summary>
     [AddComponentMenu("Box3D/Box3D Convex Collider")]
+    [HelpURL("https://github.com/timskap/box3d-unity/blob/main/unity/README.md#box3dconvexcollider")]
     public sealed class Box3DConvexCollider : Box3DCollider
     {
         [Tooltip("Source mesh. Defaults to the MeshFilter mesh on this GameObject.")]
@@ -19,9 +20,17 @@ namespace Box3D
         [Tooltip("Maximum hull vertices. Fewer is faster; 16-32 is plenty for most shapes.")]
         [Range(4, 64)] public int maxVertices = 32;
 
+        Mesh _builtMesh;
+        int _builtMaxVertices;
+
+        protected override bool GeometryOutOfDate =>
+            base.GeometryOutOfDate || ResolveMesh() != _builtMesh || maxVertices != _builtMaxVertices;
+
         protected override B3ShapeId CreateNativeShape(B3BodyId bodyId, ref B3ShapeDef def)
         {
             Mesh source = ResolveMesh();
+            _builtMesh = source;
+            _builtMaxVertices = maxVertices;
             if (source == null)
             {
                 Debug.LogError("[Box3D] Box3DConvexCollider has no mesh. Assign one or add a MeshFilter.", this);
@@ -55,7 +64,8 @@ namespace Box3D
             return shapeId;
         }
 
-        Mesh ResolveMesh()
+        /// <summary>The mesh the hull is built from: the assigned mesh or the MeshFilter mesh.</summary>
+        public Mesh ResolveMesh()
         {
             if (mesh != null)
             {

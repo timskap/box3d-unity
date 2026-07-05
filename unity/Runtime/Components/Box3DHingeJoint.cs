@@ -9,6 +9,7 @@ namespace Box3D
     /// Hinge (revolute) joint: allows rotation about a single axis through the anchor.
     /// </summary>
     [AddComponentMenu("Box3D/Joints/Box3D Hinge Joint")]
+    [HelpURL("https://github.com/timskap/box3d-unity/blob/main/unity/README.md#box3dhingejoint")]
     public sealed class Box3DHingeJoint : Box3DJoint
     {
         [Tooltip("Hinge axis in this GameObject's local space.")]
@@ -101,6 +102,16 @@ namespace Box3D
             if (Application.isPlaying)
             {
                 ApplyProperties();
+            }
+        }
+
+        protected override void DrawJointGizmos(Vector3 worldAnchor)
+        {
+            DrawAxisGizmo(worldAnchor, axis, new Color(0.3f, 0.8f, 1.0f, 0.9f));
+            if (useLimits)
+            {
+                DrawLimitArcGizmo(worldAnchor, transform.TransformDirection(axis), minAngle, maxAngle,
+                    new Color(0.3f, 0.8f, 1.0f, 0.5f));
             }
         }
     }
