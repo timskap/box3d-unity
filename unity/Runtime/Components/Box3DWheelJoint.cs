@@ -72,13 +72,32 @@ namespace Box3D
             B3WheelJointDef def = B3Api.b3DefaultWheelJointDef();
             FillBase(ref def.@base);
 
-            // Frame A (chassis): x axis = suspension/steering axis.
-            // Frame B (wheel): z axis = spin axis. Both frames sit at the anchor.
+            // Both joint frames sit at the anchor with x = suspension/steering axis
+            // and z = wheel spin axis. The native joint suspends along frame A's x,
+            // steers about it, and spins the wheel about the (steered) frame z, so
+            // the spin axis must be encoded in frame A too — a basis with an
+            // arbitrary z would make the wheel roll in an arbitrary direction.
             Vector3 worldAnchor = WorldAnchor;
-            Quaternion frameARotation = BasisWithX(transform.TransformDirection(suspensionAxis));
-            Quaternion frameBRotation = BasisWithZ(transform.TransformDirection(spinAxis));
-            def.@base.localFrameA = WorldToBodyFrame(connectedBody, worldAnchor, frameARotation);
-            def.@base.localFrameB = WorldToBodyFrame(OwnBody, worldAnchor, frameBRotation);
+            Vector3 suspension = transform.TransformDirection(suspensionAxis).normalized;
+            Vector3 spin = transform.TransformDirection(spinAxis);
+
+            // Orthogonalize the spin axis against the suspension axis.
+            spin -= suspension * Vector3.Dot(spin, suspension);
+            if (spin.sqrMagnitude < 1e-8f)
+            {
+                spin = Vector3.Cross(suspension, Vector3.forward);
+                if (spin.sqrMagnitude < 1e-8f)
+                {
+                    spin = Vector3.Cross(suspension, Vector3.right);
+                }
+            }
+
+            spin.Normalize();
+
+            // z = spin, y = spin × suspension, which yields x = suspension.
+            Quaternion frameRotation = Quaternion.LookRotation(spin, Vector3.Cross(spin, suspension));
+            def.@base.localFrameA = WorldToBodyFrame(connectedBody, worldAnchor, frameRotation);
+            def.@base.localFrameB = WorldToBodyFrame(OwnBody, worldAnchor, frameRotation);
 
             def.enableSuspensionSpring = (byte)(useSuspension ? 1 : 0);
             def.suspensionHertz = suspensionHertz;
