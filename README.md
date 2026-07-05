@@ -1,106 +1,96 @@
-# Box3D
+# Box3D for Unity
 
-[![Build Status](https://github.com/erincatto/box3d/actions/workflows/build.yml/badge.svg)](https://github.com/erincatto/box3d/actions)
-[![CLA assistant](https://cla-assistant.io/readme/badge/erincatto/box3d)](https://cla-assistant.io/erincatto/box3d)
+Unity integration for **[Box3D](https://box2d.org)**, Erin Catto's 3D physics engine
+for games. This repository contains the Box3D engine source together with a Unity
+package (`unity/`) that exposes it through a familiar component workflow — world,
+rigid bodies, colliders, joints, collision/trigger events, and scene queries — backed
+by the native library via P/Invoke.
 
-![Box3D Logo](https://box2d.org/images/logo.svg)
+## Repository layout
 
-Box3D is a 3D physics engine for games.
+| Path | Contents |
+| --- | --- |
+| `unity/` | **The Unity package** (`com.box3d.unity`): components, native bindings, prebuilt binaries for Windows/macOS/Linux, and editor tooling. |
+| `src/`, `include/` | Box3D engine source (portable C17). |
+| `samples/` | Native samples app (sokol + imgui). |
+| `test/`, `benchmark/` | Engine unit tests and benchmarks. |
+| `docs/` | Engine user manual (Doxygen). |
+
+## Using the Unity package
+
+Quick version:
+
+1. Copy (or symlink) the `unity/` folder into your project's `Packages/` folder
+   (e.g. `MyProject/Packages/com.box3d.unity`), or use
+   `Window > Package Manager > + > Add package from disk...` and pick `unity/package.json`.
+2. In a scene: `GameObject > Box3D > Physics World`, then
+   `GameObject > Box3D > Dynamic Box`. Press play.
+
+```csharp
+using Box3D;
+using UnityEngine;
+
+public class Kick : MonoBehaviour
+{
+    void Start() => GetComponent<Box3DBody>().AddImpulse(Vector3.up * 5f);
+}
+```
+
+Prebuilt native binaries for all desktop platforms are included, so no native build
+step is needed. Requires Unity 2021.3+.
+
+**Full documentation: [`unity/README.md`](unity/README.md)** — installation, quick
+start, editor workflow, a reference for every component, events, filtering, queries,
+troubleshooting, and how to rebuild the native library.
+
+### Unity feature overview
+
+- `Box3DWorld` — owns and steps the simulation, live-tunable in play mode.
+- `Box3DBody` — Static / Kinematic / Dynamic rigid bodies with damping, gravity
+  scale, interpolation, CCD, sleep control, and per-axis freeze constraints.
+- Colliders — sphere, capsule, box, convex hull, and static triangle mesh, with
+  auto-fit to render bounds, per-shape materials, and 64-bit collision filtering.
+- Joints — hinge, ball, distance, prismatic, fixed, wheel, motor, and parallel,
+  with limits, motors, springs, breaking, and gizmo visualization.
+- Events — collision enter/exit, high-speed hits, and trigger enter/exit via C#
+  events or handler interfaces.
+- Queries — raycast, raycast-all, sphere cast, overlap sphere/AABB, explosions.
+
+## The Box3D engine
+
+Box3D features continuous collision detection, a robust *Soft Step* rigid body
+solver, convex hulls / capsules / spheres / triangle meshes / height fields,
+sensors, joints with limits/motors/springs, extensive multithreading and SIMD,
+and cross-platform determinism. It is written in portable C17 and developed by
+[Erin Catto](https://github.com/erincatto).
 
 [![Introducing Box3D](https://img.youtube.com/vi/jr_Fzl2XwKU/maxresdefault.jpg)](https://www.youtube.com/watch?v=jr_Fzl2XwKU)
 
-## Features
+### Building the engine
 
-### Collision
+- Install [CMake](https://cmake.org/) and [git](https://git-scm.com/).
+- With CMake presets (recommended):
+  - Windows: `cmake --preset windows` then `cmake --build --preset windows-release`
+  - Linux: `cmake --preset linux-release` then `cmake --build --preset linux-release`
+  - macOS: `cmake --preset macos` then `cmake --build --preset macos-release`
+- Visual Studio: run `build_vs2026.bat`, open `build/box3d.slnx`.
+- Linux shell: run `build.sh`.
+- Xcode: `cmake -G Xcode ..` in a `build` folder, open `box3d.xcodeproj`.
 
-- Continuous collision detection
-- Contact events
-- Convex hulls, capsules, spheres, triangle meshes, and height fields
-- Multiple shapes per body
-- Collision filtering
-- Ray casts, shape casts, and overlap queries
-- Sensor system
-- Character mover
-
-### Physics
-
-- Robust _Soft Step_ rigid body solver
-- Continuous physics for fast translations and rotations
-- Island based sleep
-- Revolute, prismatic, distance, motor, weld, and wheel joints
-- Joint limits, motors, springs, and friction
-- Joint and contact forces
-- Body movement events and sleep notification
-
-### System
-
-- Data-oriented design
-- Written in portable C17
-- Extensive multithreading and SIMD
-- Optimized for large piles of bodies
-- Cross platform determinism
-- Recording and replay
-
-### Samples
-
-- Uses sokol to run with D3D11 on Windows, Metal on macOS, and OpenGL 4.5 on Linux.
-- Graphical user interface with imgui.
-- Many samples to demonstrate features and performance.
-
-## Building all platforms
-
-- Install [CMake](https://cmake.org/)
-- Install [git](https://git-scm.com/)
-- Ensure these run from the command line
-
-## Building with CMake presets (recommended)
-
-This uses the presets in `CMakePresets.json`.
-
-- Windows: `cmake --preset windows` then `cmake --build --preset windows-release`
-- Linux: `cmake --preset linux-release` then `cmake --build --preset linux-release`
-- macOS: `cmake --preset macos` then `cmake --build --preset macos-release`
-
-Run the samples app (must be in the Box3D directory).
+Run the samples app from the repository root:
 
 - Windows: `.\build\bin\Release\samples.exe`
 - Linux: `./build/bin/samples`
 - macOS: `./build/bin/Release/samples`
 
-## Building for Visual Studio
+To produce the shared library the Unity package loads, configure with
+`-DBUILD_SHARED_LIBS=ON` — see
+[Rebuilding the native library](unity/README.md#rebuilding-the-native-library).
 
-- Install [Visual Studio](https://visualstudio.microsoft.com/)
-- Run `build_vs2026.bat`
-- Open and build `build/box3d.slnx`
+### Using the engine from C/C++
 
-## Building for Linux
-
-- Run `build.sh` from a bash shell
-- Results are in the build sub-folder
-
-## Building for Xcode
-
-- mkdir build
-- cd build
-- cmake -G Xcode ..
-- Open `box3d.xcodeproj`
-- Select the samples scheme
-- Build and run the samples
-
-## Building and installing
-
-- mkdir build
-- cd build
-- cmake ..
-- cmake --build . --config Release
-- cmake --install . (might need sudo)
-
-## Using Box3D in your project
-
-The core library has no dependencies beyond the C runtime (and `libm` on Unix). Linking it
-gives you the `box3d::box3d` target.
-
-I recommend to use FetchContent:
+The core library has no dependencies beyond the C runtime (and `libm` on Unix).
+Linking it gives you the `box3d::box3d` target:
 
 ```cmake
 include(FetchContent)
@@ -112,69 +102,26 @@ FetchContent_MakeAvailable(box3d)
 target_link_libraries(my_app PRIVATE box3d::box3d)
 ```
 
-For a vendored copy or git submodule, point `add_subdirectory` at it:
+A vendored copy or submodule works with `add_subdirectory`, and an installed copy
+(`cmake --install`) with `find_package(box3d 0.1 REQUIRED)`. See
+[`docs/hello.md`](docs/hello.md) for a minimal first program.
 
-```cmake
-add_subdirectory(extern/box3d)
+### Compatibility
 
-target_link_libraries(my_app PRIVATE box3d::box3d)
-```
+- The library builds and runs on Windows, Linux, and macOS.
+- C17 compiler for the library; C++20 for the native samples.
+- SSE2 / Neon SIMD is used for performance and can be disabled with
+  `BOX3D_DISABLE_SIMD`.
 
-To use a copy installed with `cmake --install`, find the package:
+## Documentation and community
 
-```cmake
-find_package(box3d 0.1 REQUIRED)
-
-target_link_libraries(my_app PRIVATE box3d::box3d)
-```
-
-See [`docs/hello.md`](docs/hello.md) for a minimal first program.
-
-## Compatibility
-
-The Box3D library and samples build and run on Windows, Linux, and Mac.
-
-You will need a compiler that supports C17 to build the Box3D library.
-
-You will need a compiler that supports C++20 to build the samples.
-
-Box3D uses SSE2 and Neon SIMD math to improve performance. This can be disabled by defining `BOX3D_DISABLE_SIMD`.
-
-## Documentation
-
-The user manual lives in [`docs/`](docs/) and is built with Doxygen. Enable the `BOX3D_DOCS` CMake option and build the `doc` target.
-
-## Community
-
-- [Discord](https://discord.gg/NKYgCBP)
-
-## Contributing
-
-Pull requests are currently disabled. Instead, please file an issue for bugs or feature requests. For support, please visit the Discord server.
-
-## Giving feedback
-
-Please file an issue or start a chat on discord. You can also use [GitHub Discussions](https://github.com/erincatto/box3d/discussions).
+- Unity package manual: [`unity/README.md`](unity/README.md)
+- Engine user manual: [`docs/`](docs/) (Doxygen; enable the `BOX3D_DOCS` CMake
+  option and build the `doc` target)
+- [Discord](https://discord.gg/NKYgCBP) ·
+  [GitHub Discussions](https://github.com/erincatto/box3d/discussions)
 
 ## License
 
-Box3D is developed by Erin Catto and uses the [MIT license](https://en.wikipedia.org/wiki/MIT_License).
-
-## Sponsorship
-
-Support development of Box3D through [Github Sponsors](https://github.com/sponsors/erincatto).
-
-Please consider starring this repository and subscribing to my [YouTube channel](https://www.youtube.com/@erin_catto).
-
-## LLM Usage
-
-LLMs are used in the following areas:
-
-- unit tests
-- samples app
-- migrating code between Box2D and Box3D
-- build configuration
-- code reviews
-- benchmarking
-
-Elsewhere all code is developed and written by me. I take responsibility for every line of code in Box2D/3D.
+Box3D is developed by Erin Catto and uses the [MIT license](LICENSE). The Unity
+integration in `unity/` is MIT as well.

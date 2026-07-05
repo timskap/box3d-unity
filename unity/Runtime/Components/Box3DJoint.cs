@@ -13,6 +13,7 @@ namespace Box3D
     /// </summary>
     [DefaultExecutionOrder(-700)]
     [RequireComponent(typeof(Box3DBody))]
+    [HelpURL("https://github.com/timskap/box3d-unity/blob/main/unity/README.md#joints")]
     public abstract class Box3DJoint : MonoBehaviour
     {
         [Tooltip("The body this joint connects to. None = anchored to the world.")]
@@ -238,6 +239,54 @@ namespace Box3D
             {
                 Gizmos.DrawLine(worldAnchor, connectedBody.transform.position);
             }
+
+            DrawJointGizmos(worldAnchor);
+        }
+
+        /// <summary>Extra gizmos per joint type (axes, limits), drawn while selected.</summary>
+        protected virtual void DrawJointGizmos(Vector3 worldAnchor)
+        {
+        }
+
+        /// <summary>Draw a joint axis as a line through the anchor.</summary>
+        protected void DrawAxisGizmo(Vector3 worldAnchor, Vector3 localAxis, Color color, float halfLength = 0.5f)
+        {
+            Vector3 dir = transform.TransformDirection(localAxis);
+            if (dir.sqrMagnitude < 1e-10f)
+            {
+                return;
+            }
+
+            dir.Normalize();
+            Gizmos.color = color;
+            Gizmos.DrawLine(worldAnchor - dir * halfLength, worldAnchor + dir * halfLength);
+        }
+
+        /// <summary>Draw an angular limit arc around a world axis through the anchor.</summary>
+        protected static void DrawLimitArcGizmo(Vector3 worldAnchor, Vector3 worldAxis, float minDegrees,
+            float maxDegrees, Color color, float radius = 0.25f)
+        {
+            if (worldAxis.sqrMagnitude < 1e-10f)
+            {
+                return;
+            }
+
+            Vector3 axis = worldAxis.normalized;
+            Vector3 reference = Vector3.Cross(axis, Mathf.Abs(axis.y) < 0.99f ? Vector3.up : Vector3.right).normalized;
+
+            Gizmos.color = color;
+            const int segments = 24;
+            Vector3 previous = worldAnchor + Quaternion.AngleAxis(minDegrees, axis) * reference * radius;
+            Gizmos.DrawLine(worldAnchor, previous);
+            for (int i = 1; i <= segments; ++i)
+            {
+                float angle = Mathf.Lerp(minDegrees, maxDegrees, i / (float)segments);
+                Vector3 current = worldAnchor + Quaternion.AngleAxis(angle, axis) * reference * radius;
+                Gizmos.DrawLine(previous, current);
+                previous = current;
+            }
+
+            Gizmos.DrawLine(worldAnchor, previous);
         }
     }
 }

@@ -10,6 +10,7 @@ namespace Box3D
     /// linear/angular springs soften the weld for breakable or wobbly structures.
     /// </summary>
     [AddComponentMenu("Box3D/Joints/Box3D Fixed Joint")]
+    [HelpURL("https://github.com/timskap/box3d-unity/blob/main/unity/README.md#box3dfixedjoint")]
     public sealed class Box3DFixedJoint : Box3DJoint
     {
         [Header("Softness")]

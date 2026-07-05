@@ -10,6 +10,7 @@ namespace Box3D
     /// body, with no relative rotation. Pistons, elevators, sliding doors.
     /// </summary>
     [AddComponentMenu("Box3D/Joints/Box3D Prismatic Joint")]
+    [HelpURL("https://github.com/timskap/box3d-unity/blob/main/unity/README.md#box3dprismaticjoint")]
     public sealed class Box3DPrismaticJoint : Box3DJoint
     {
         [Tooltip("Slide axis in this GameObject's local space.")]
@@ -98,6 +99,34 @@ namespace Box3D
             if (Application.isPlaying)
             {
                 ApplyProperties();
+            }
+        }
+
+        protected override void DrawJointGizmos(Vector3 worldAnchor)
+        {
+            Vector3 dir = transform.TransformDirection(axis);
+            if (dir.sqrMagnitude < 1e-10f)
+            {
+                return;
+            }
+
+            dir.Normalize();
+            var color = new Color(0.3f, 0.8f, 1.0f, 0.9f);
+            if (useLimits)
+            {
+                // Show the travel range with end ticks.
+                float lower = Mathf.Min(minTranslation, maxTranslation);
+                float upper = Mathf.Max(minTranslation, maxTranslation);
+                Vector3 a = worldAnchor + dir * lower;
+                Vector3 b = worldAnchor + dir * upper;
+                Gizmos.color = color;
+                Gizmos.DrawLine(a, b);
+                Gizmos.DrawWireCube(a, Vector3.one * 0.04f);
+                Gizmos.DrawWireCube(b, Vector3.one * 0.04f);
+            }
+            else
+            {
+                DrawAxisGizmo(worldAnchor, axis, color);
             }
         }
     }

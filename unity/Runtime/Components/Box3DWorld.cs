@@ -16,6 +16,7 @@ namespace Box3D
     [DefaultExecutionOrder(-1000)]
     [DisallowMultipleComponent]
     [AddComponentMenu("Box3D/Box3D World")]
+    [HelpURL("https://github.com/timskap/box3d-unity/blob/main/unity/README.md#box3dworld")]
     public sealed class Box3DWorld : MonoBehaviour
     {
         [Tooltip("World gravity in m/s^2. Box3D has no fixed up axis; Unity convention is -Y.")]
@@ -37,22 +38,22 @@ namespace Box3D
 
         [Header("Tuning (engine defaults)")]
         [Tooltip("Collisions faster than this bounce (restitution). m/s.")]
-        public float restitutionThreshold = 1.0f;
+        [Min(0.0f)] public float restitutionThreshold = 1.0f;
 
         [Tooltip("Collisions faster than this can raise hit events. m/s.")]
-        public float hitEventThreshold = 1.0f;
+        [Min(0.0f)] public float hitEventThreshold = 1.0f;
 
         [Tooltip("Contact stiffness in cycles per second.")]
-        public float contactHertz = 30.0f;
+        [Min(0.0f)] public float contactHertz = 30.0f;
 
         [Tooltip("Contact bounciness damping. Higher is less energetic overlap recovery.")]
-        public float contactDampingRatio = 10.0f;
+        [Min(0.0f)] public float contactDampingRatio = 10.0f;
 
         [Tooltip("Maximum overlap resolution speed in m/s.")]
-        public float contactSpeed = 3.0f;
+        [Min(0.0f)] public float contactSpeed = 3.0f;
 
         [Tooltip("Maximum linear speed of any body in m/s.")]
-        public float maximumLinearSpeed = 400.0f;
+        [Min(0.001f)] public float maximumLinearSpeed = 400.0f;
 
         /// <summary>The first enabled world in the scene, if any.</summary>
         public static Box3DWorld Main { get; private set; }
@@ -488,6 +489,32 @@ namespace Box3D
             if (IsCreated)
             {
                 B3Api.b3World_SetGravity(_worldId, value);
+            }
+        }
+
+        /// <summary>Push runtime-editable inspector values to the native world.</summary>
+        public void ApplyProperties()
+        {
+            if (!IsCreated)
+            {
+                return;
+            }
+
+            B3Api.b3World_SetGravity(_worldId, gravity);
+            B3Api.b3World_EnableSleeping(_worldId, enableSleep);
+            B3Api.b3World_EnableContinuous(_worldId, enableContinuous);
+            B3Api.b3World_SetRestitutionThreshold(_worldId, restitutionThreshold);
+            B3Api.b3World_SetHitEventThreshold(_worldId, hitEventThreshold);
+            B3Api.b3World_SetContactTuning(_worldId, contactHertz, contactDampingRatio, contactSpeed);
+            B3Api.b3World_SetMaximumLinearSpeed(_worldId, maximumLinearSpeed);
+            B3Api.b3World_SetWorkerCount(_worldId, ResolveWorkerCount());
+        }
+
+        void OnValidate()
+        {
+            if (Application.isPlaying && IsCreated)
+            {
+                ApplyProperties();
             }
         }
 

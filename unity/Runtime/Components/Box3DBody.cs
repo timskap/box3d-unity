@@ -34,16 +34,17 @@ namespace Box3D
     [DefaultExecutionOrder(-900)]
     [DisallowMultipleComponent]
     [AddComponentMenu("Box3D/Box3D Body")]
+    [HelpURL("https://github.com/timskap/box3d-unity/blob/main/unity/README.md#box3dbody")]
     public sealed class Box3DBody : MonoBehaviour
     {
         [Tooltip("Static bodies never move. Kinematic bodies follow the transform and push dynamic bodies. Dynamic bodies are fully simulated.")]
         [SerializeField] Box3DBodyType _bodyType = Box3DBodyType.Dynamic;
 
         [Tooltip("Linear velocity damping per second.")]
-        public float linearDamping;
+        [Min(0.0f)] public float linearDamping;
 
         [Tooltip("Angular velocity damping per second.")]
-        public float angularDamping = 0.05f;
+        [Min(0.0f)] public float angularDamping = 0.05f;
 
         [Tooltip("Multiplier on world gravity for this body.")]
         public float gravityScale = 1.0f;
@@ -56,7 +57,7 @@ namespace Box3D
         public bool enableSleep = true;
 
         [Tooltip("Speed below which the body can fall asleep, m/s.")]
-        public float sleepThreshold = 0.05f;
+        [Min(0.0f)] public float sleepThreshold = 0.05f;
 
         [Header("Advanced")]
         [Tooltip("Continuous collision detection for fast bodies. Use sparingly.")]
@@ -499,6 +500,7 @@ namespace Box3D
         }
 
         /// <summary>Wake the body (and its island).</summary>
+        [ContextMenu("Wake Up")]
         public void WakeUp()
         {
             if (IsCreated)
@@ -508,6 +510,7 @@ namespace Box3D
         }
 
         /// <summary>Put the body (and its island) to sleep.</summary>
+        [ContextMenu("Sleep")]
         public void Sleep()
         {
             if (IsCreated)
@@ -517,6 +520,7 @@ namespace Box3D
         }
 
         /// <summary>Recompute mass from attached shapes (after changing densities or shapes).</summary>
+        [ContextMenu("Recompute Mass")]
         public void RecomputeMass()
         {
             if (IsCreated)
@@ -531,6 +535,11 @@ namespace Box3D
             if (!IsCreated)
             {
                 return;
+            }
+
+            if (B3Api.b3Body_GetType(_bodyId) != (B3BodyType)_bodyType)
+            {
+                B3Api.b3Body_SetType(_bodyId, (B3BodyType)_bodyType);
             }
 
             B3Api.b3Body_SetLinearDamping(_bodyId, linearDamping);

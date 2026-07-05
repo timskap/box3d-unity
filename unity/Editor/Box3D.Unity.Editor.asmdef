@@ -1,0 +1,18 @@
+{
+    "name": "Box3D.Unity.Editor",
+    "rootNamespace": "Box3D.Editor",
+    "references": [
+        "Box3D.Unity"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

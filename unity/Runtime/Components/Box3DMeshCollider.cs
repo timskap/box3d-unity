@@ -12,6 +12,7 @@ namespace Box3D
     /// Native mesh data is shared between colliders that use the same mesh, scale, and offset.
     /// </summary>
     [AddComponentMenu("Box3D/Box3D Mesh Collider")]
+    [HelpURL("https://github.com/timskap/box3d-unity/blob/main/unity/README.md#box3dmeshcollider")]
     public sealed class Box3DMeshCollider : Box3DCollider
     {
         [Tooltip("Source mesh. Defaults to the MeshFilter mesh on this GameObject.")]
@@ -21,10 +22,17 @@ namespace Box3D
         public bool weldVertices = true;
 
         IntPtr _meshData;
+        Mesh _builtMesh;
+        bool _builtWeldVertices;
+
+        protected override bool GeometryOutOfDate =>
+            base.GeometryOutOfDate || ResolveMesh() != _builtMesh || weldVertices != _builtWeldVertices;
 
         protected override B3ShapeId CreateNativeShape(B3BodyId bodyId, ref B3ShapeDef def)
         {
             Mesh source = ResolveMesh();
+            _builtMesh = source;
+            _builtWeldVertices = weldVertices;
             if (source == null)
             {
                 Debug.LogError("[Box3D] Box3DMeshCollider has no mesh. Assign one or add a MeshFilter.", this);
@@ -58,7 +66,8 @@ namespace Box3D
             }
         }
 
-        Mesh ResolveMesh()
+        /// <summary>The mesh the collider is built from: the assigned mesh or the MeshFilter mesh.</summary>
+        public Mesh ResolveMesh()
         {
             if (mesh != null)
             {
