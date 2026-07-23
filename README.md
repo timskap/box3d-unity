@@ -1,5 +1,9 @@
 # Box3D for Unity
 
+> [!IMPORTANT]
+> **This repository is archived and no longer maintained.** Future development
+> continues at **[Suvitruf/box3d-unity](https://github.com/Suvitruf/box3d-unity)**.
+
 Unity integration for **[Box3D](https://box2d.org)**, Erin Catto's 3D physics engine
 for games. This repository contains the Box3D engine source together with a Unity
 package (`unity/`) that exposes it through a familiar component workflow — world,
